@@ -1,8 +1,8 @@
 ## ABOUT
 
-ImageScribe is a bash script that takes a batch of images, scans them for text with Tesseract OCR, and adds any detected text to a metadata tag of your choosing.
+ImageScribe is a bash script that takes a batch of JPGs/PNGs, scans them for text with Tesseract OCR, and adds any detected text to the "Title" metadata tag.
 
-My motivation for making this is that I frequently have trouble finding specific memes in my collection. This is intended to make it easier, because you can search for images based on the text contained in their metadata in the Windows 10 (W10) file explorer.
+My motivation for making this is that I frequently have trouble finding specific memes in my collection. This is intended to make it easier, because you can search for JPGs based on the text contained in their metadata in the Windows 10 file explorer.
 
 Please feel free to suggest improvements or mention any bugs you notice.
 
@@ -10,30 +10,34 @@ Please feel free to suggest improvements or mention any bugs you notice.
 
 Thus far, I've designed this script to work with Windows 10. The script itself can be run in any bash terminal, but I don't know how the searching would work on other operating systems. I may add support for other OS's later.
 
-Download the following:
+1. Clone the repo
+2. Install tesseract, imagemagick, and exiftool with whatever package manager you want. Here's how you would do it with chocolatey. `choco install tesseract imagemagick exiftool -y`
 
-[Tesseract OCR] (https://github.com/UB-Mannheim/tesseract/wiki)
-[ImageMagick] (https://imagemagick.org/script/download.php#windows)
-[EXIFTOOL] (https://exiftool.org/)
+3. Copy all JPGs/PNGs that you want to be tagged to the input_images folder. I'd recommend keeping backup copies just in case something weird happens. I squashed bugs that showed up on my end but who knows what kind of weird JPGs/PNGs people have.
 
-Move all images that you want to be tagged to the input_images folder. I'd recommend keeping backup copies just in case something weird happens. I squashed bugs that showed up on my end but who knows what kind of weird images people have.
+4. Run the script with whatever flags you want. Example: `./image_scribe -d -e`
 
-Run the script with 2 arguments, the first argument being the path to EXIFTOOL on your machine, the 2nd argument being the metadata tag that you want to be updated with the text detected by Tesseract. I recommend -Title for reasons described in the Q & A
+5. After the script finishes running, you can find your modified JPGs/PNGs in the output_images folder, and logging in the output.txt file.
 
-Example: bash ImageScribe.sh "../EXIFTOOL/exiftool" "-Title"
+Keep in mind the script does not clear either the input or output folders before or after it finishes running. So if you want to do that you need to do it manually. Filenames should be UTF-8 
 
-After the script finishes running, you can find your modified images in the output_images folder.
+### FLAGS
+
+When I was testing this I created some scripts to clean up my images folder. If you add some flags to the bash command it will run that code before it runs the main one that actually processes the images with tesseract.
+
+-e: This flag doesn't run a script, but adds some more logging to output.txt if you're interested in that and don't care about the speed of the script.
+
+-d: This flag runs code that detects duplicate file names and appends _n to the end of the filename. This is necessary when you have JPGs/PNGs with the same file name because all pngs get converted to jpegs in order to be searchable.
+
+-j: This flag runs code that detects files with the .PNG extension that have JPEG as their MIME type (so basically fake PNGs) and changes their extension to JPG. I had a bunch of these for some reason, IIRC they were mobile screenshots.
 
 ## SEARCHING
 
 Open up an instance of file explorer.
 
-If you haven't already, click the "View" option in the top left => click "Details pane". This pops up a little section on the right-hand side that will give you extra details about any file you click on in the explorer. For images, the pane will display (some) of the metadata tags. Any images that have been run through ImageScribe should have some values in the fields.
+If you haven't already, click the "View" option in the top left => click "Details pane". This pops up a little section on the right-hand side that will give you extra details about any file you click on in the explorer. For images, the pane will display (some) of the metadata tags. Any JPGs/PNGs that have been run through ImageScribe should have some values in the fields.
 
-![W10 File Explorer](file_explorer.jpg "JPG with metadata")
-
-
-To search for an image based on its metadata, use the search bar in the top right with the following syntax: ${tag}: ${value}. The search is case insensitive, and will match partial strings.
+To search for an JPG based on its metadata, use the search bar in the top right with the following syntax: ${tag}: ${value}. The search is case insensitive, and will match partial strings.
 
 So for example, title: cat could return images with the following values in their title tag: "cat", "CAT", "cute kittycat", "he will catch the ball".
 
@@ -41,36 +45,29 @@ So for example, title: cat could return images with the following values in thei
 
 ### Why not just use Google Photos to search for images?
 
-AFAICT, Google Photos does a great job visually identifying objects in photos, but it's inconsistent when it comes to detecting text. Google Photos also doesn't display any metadata on an image except for the location.
+AFAICT, Google Photos does a great job visually identifying objects in photos, but it's inconsistent when it comes to detecting text. For example, when I search through my images on google photos for the word "Anon" (to pull up all 4chan screencaps), it shows about 200 results, but searching as described in the above section yields about 500 results. Google Photos also doesn't display any metadata on an image except for the location.
 
 ### What image formats can I use?
 
 JPG/JPEG/PNG. Any PNGs will be converted to JPGs before they are scanned by Tesseract.
 
-### Why does it convert PNG to JPEG’s?
+### Why does the script convert PNG to JPEG’s?
 
 While EXIFTOOL has the capability of updating metadata tags on PNGs - I don’t know of a way to search for PNGs based on their metadata via the Windows 10 UI, so I convert them to JPEGS. If you happen to know of a way to do so, please let me know.
 
-## EXIF/METADATA KNOWLEDGE
+### I'm searching for a keyword and my image isn't showing up even though I'm positive it has the text inside of it, WTF?
 
-In Windows, manually modifying the "tags" attribute on an image causes the following tags listed by EXIFTOOL to change:
-
-XP Keywords
-Last Keyword XMP
-Subject
-
-If you run EXIFTOOL and modify the "Subject" tag, that will change its value, but will not affect the value of XP Keywords or Last Keyword XMP
-
-Due to some annoying things with the w10 UI we will just change the title tag as opposed to this subject, description, or comments tag
-
-Assuming our understanding is correct:
-
-When you view the EXIF metadata of an image via EXIFTOOL it only lists tags which are already populated with values. In other words, if I modify the "tags" attribute of an image in the w10 UI, those 3 tags will pop up next time I view the image with EXIFTOOL again. Also, you can run EXIFTOOL with an option to populate empty tags with values so they show up next time. But you CANNOT, for example, create tag - value pairs that aren't in the EXIF specification.
-
-## WINDOWS 10 SEARCH KNOWLEDGE
-
-For whatever reason, if a metadata tag contains text that is more than 1,000 characters, the w10 UI won't be able to search it
+Presumably for compute reasons, if a metadata tag contains text that is more than 1,000 characters, the Windows 10 UI won't be able to search it
 
 ### How come this doesn't have [insert feature here]
 
 90% chance I couldn't figure out how to do it and/or didn't feel it was worth the time investment. Please feel free to suggest improvements or mention any bugs you notice! As of May 2024 I'm unemployed and working on personal coding projects for fun right now so I have the time.
+
+## TODO
+
+- decide how to handle instance where script processes an image that is already in output_images
+- get working on other OS
+- mobile version?
+- flag that allows user to cut off text at 999 characters so images with a lot of text are still searchable
+- flag that clears input/output
+- look into filename character issue again

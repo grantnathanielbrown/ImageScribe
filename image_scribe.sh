@@ -1,15 +1,13 @@
 #!/bin/bash
 
-EXIFTOOL_PATH=$1
-EXIF_TAG=$2
-
-echo_output=true
+echo_output=false
+exec &> output.txt
 
 conditional_echo() {
-    local input=$1
-    if [ "$echo_output" = true ]; then
-        echo $input
-    fi
+  local input=$1
+  if [ "$echo_output" = true ]; then
+      echo $input
+  fi
 }
 
 output_execution_status() {
@@ -19,49 +17,41 @@ output_execution_status() {
 }
 
 rename_duplicates() {
-  # Use an associative array to track filenames without extensions
   declare -A filenames
-
-  # First, populate the array with file base names (without extensions)
-  for file in input_images/*; do
-      # Extract the base name without the extension
-      base_name="${file%.*}"
-      extension="${file##*.}"
+  for image in input_images/*; do
+      base_name="${image%.*}"
+      extension="${image##*.}"
       if [[ -z "${filenames["$base_name"]}" ]]; then
           filenames["$base_name"]=0
       else
           ((filenames["$base_name"]++))
           new_name="${base_name}_${filenames["$base_name"]}.$extension"
-          mv "$file" "$new_name"
-          conditional_echo "Renamed $file to $new_name"
+          mv "$image" "$new_name"
+          conditional_echo "Renamed $image to $new_name"
       fi
   done
 }
 
 detect_jpegs() {
-  # Loop through each PNG file in the directory
-for image in ../consolidated_images/*.{png,PNG}; do
-    conditional_echo "$image"
+  for image in input_images/*.{png,PNG}; do
     filetype=$(file --brief --mime-type "$image")
-    conditional_echo "$filetype"
-    # If the mime type is JPEG, rename it
     if [[ "$filetype" == "image/jpeg" ]]; then
-        "$EXIFTOOL_PATH" "-filename=%f.jpg" "$image"
+        conditional_echo "mislabeled JPG detected, renaming from PNG to JPG"
+        exiftool "-filename=%f.jpg" "$image"
     fi
-done
+  done
 }
 
-while getopts "dje" opt; do
+while getopts "edj" opt; do
   case ${opt} in 
+    e )
+      echo_output=true
+      ;;
     d )
       rename_duplicates
       ;;
     j )
-      test2
-      ;;
-    e )
-      echo "doing it"
-      echo_output=false
+      detect_jpegs
       ;;
     \? )
       echo "Usage: cmd [-d] [-j] [-e]"
@@ -70,25 +60,21 @@ while getopts "dje" opt; do
   esac
 done
 
-exec &> output.txt
 
 for image in ./input_images/*; do
   filetype=$(file --brief --mime-type "$image")
-  conditional_echo $filetype
   conditional_echo $image
-    # If image is a PNG, convert it to a JPG before processing it
     if [[ $filetype == "image/png" ]]; then
       new_image="${image%.*}.jpg"
-      convert "$image" "$new_image"
+      magick convert "$image" "$new_image"
       image="$new_image"
       text=$(tesseract "$image" stdout)
       output_execution_status
-      "$EXIFTOOL_PATH" -overwrite_original "$EXIF_TAG"="$text" "$image" -o ./output_images/"$(basename "$image")"
-
-      else 
+      exiftool -charset FileName=UTF8 -overwrite_original -Title="$text" "$image" -o ./output_images/"$(basename "$image")"
+    else 
       text=$(tesseract "$image" stdout)
       output_execution_status
-      "$EXIFTOOL_PATH" "$EXIF_TAG"="$text" "$image" -o ./output_images/"$(basename "$image")"
+      exiftool -charset FileName=UTF8 -Title="$text" "$image" -o ./output_images/"$(basename "$image")"
     fi
 done
 
