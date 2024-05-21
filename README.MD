@@ -13,11 +13,13 @@ Thus far, I've designed this script to work with Windows 10. The script itself c
 1. Clone the repo
 2. Install tesseract, imagemagick, and exiftool with whatever package manager you want. Here's how you would do it with chocolatey. `choco install tesseract imagemagick exiftool -y`
 
-3. Copy all JPGs/PNGs that you want to be tagged to the input_images folder. I'd recommend keeping backup copies just in case something weird happens. I squashed bugs that showed up on my end but who knows what kind of weird JPGs/PNGs people have.
+3. Delete placeholder images in input/output_images folder (git doesn't track empty directories)
 
-4. Run the script with whatever flags you want. Example: `./image_scribe -d -e`
+4. Copy all JPGs/PNGs that you want to be tagged to the input_images folder. I'd recommend keeping backup copies just in case something weird happens. I squashed bugs that showed up on my end but who knows what kind of weird JPGs/PNGs people have.
 
-5. After the script finishes running, you can find your modified JPGs/PNGs in the output_images folder, and logging in the output.txt file.
+5. Run the script with whatever flags you want. Example: `./image_scribe -d -e`
+
+6. After the script finishes running, you can find your modified JPGs/PNGs in the output_images folder, and logging in the output.txt file.
 
 Keep in mind the script does not clear either the input or output folders before or after it finishes running. So if you want to do that you need to do it manually. Filenames should be UTF-8 
 
@@ -65,9 +67,11 @@ Presumably for compute reasons, if a metadata tag contains text that is more tha
 
 ## TODO
 
+- see if there is a better alternative to tesseract
+- add functionality for other image types?
 - decide how to handle instance where script processes an image that is already in output_images
 - get working on other OS
 - mobile version?
 - flag that allows user to cut off text at 999 characters so images with a lot of text are still searchable
-- flag that clears input/output
+- flag that clears input/output folders
 - look into filename character issue again
