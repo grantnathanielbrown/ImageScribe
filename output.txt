@@ -1,7 +1,0 @@
-    1 image files copied
-Estimating resolution as 550
-    1 image files created
-Warning: Malformed UTF-8 character(s) - ./input_images/300px-You_Son_of_a_Bitch,_I’m_In_(Morty) .jpg
-Error: Error opening file - ./input_images/300px-You_Son_of_a_Bitch,_I’m_In_(Morty) .jpg
-    0 image files updated
-    1 files weren't updated due to errors
