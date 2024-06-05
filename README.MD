@@ -15,19 +15,25 @@ Thus far, I've designed this script to work with Windows 10. The script itself c
 
 3. Delete placeholder images in input/output_images folder (git doesn't track empty directories)
 
-4. Copy all JPGs/PNGs that you want to be tagged to the input_images folder. I'd recommend keeping backup copies just in case something weird happens. I squashed bugs that showed up on my end but who knows what kind of weird JPGs/PNGs people have.
+4. Copy all JPGs/PNGs that you want to be tagged to the input_images folder. I'd recommend keeping backup copies just in case something weird happens. I squashed bugs that showed up on my end but who knows what kind of weird JPGs/PNGs people have. Filenames should be UTF-8.
 
-5. Run the script with whatever flags you want. Example: `./image_scribe -d -e`
+5. Run the script with whatever flags you want. Example: `./image_scribe.sh -q -d`
 
-6. After the script finishes running, you can find your modified JPGs/PNGs in the output_images folder, and logging in the output.txt file.
+6. After the script finishes running, you can find your modified JPGs/PNGs in the output_images folder, and logging in the logs.txt file.
 
-Keep in mind the script does not clear either the input or output folders before or after it finishes running. So if you want to do that you need to do it manually. Filenames should be UTF-8 
+7. (optional) I'm not 100% sure why but due to the way files are being added to the output_images folder, the search indexing on the folder will be messed up, that is to say, some images containing "X" won't necessarily show up for a few days. There are 3 ways to fix this:
+
+- manually move the processed images in output_images to another folder. I recommend this option
+- wait for a few days
+- Control Panel => search for Indexing Options => Advanced => Rebuild
+
+Keep in mind the script does not clear either the input or output folders before or after it finishes running. So if you want to do that you need to do it manually.
 
 ### FLAGS
 
-When I was testing this I created some scripts to clean up my images folder. If you add some flags to the bash command it will run that code before it runs the main one that actually processes the images with tesseract.
+When I was testing this I created some scripts to clean up my images folder. If you add some flags to the bash command it will run that code before it runs the main one that actually processes the images with tesseract. There are also some flags concerning logging.
 
--e: This flag doesn't run a script, but adds some more logging to output.txt if you're interested in that and don't care about the speed of the script.
+-q: This flag doesn't run a script, but removes all logging from the terminal and any logging in logs.txt that don't come from exiftool. You may want to do this if you just want the script to run as fast as possible.
 
 -d: This flag runs code that detects duplicate file names and appends _n to the end of the filename. This is necessary when you have JPGs/PNGs with the same file name because all pngs get converted to jpegs in order to be searchable.
 
@@ -73,5 +79,5 @@ Presumably for compute reasons, if a metadata tag contains text that is more tha
 - get working on other OS
 - mobile version?
 - flag that allows user to cut off text at 999 characters so images with a lot of text are still searchable
-- flag that clears input/output folders
+- flag that clears output/input folders before/after script runs
 - look into filename character issue again
